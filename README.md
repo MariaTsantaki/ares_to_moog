@@ -6,5 +6,8 @@ To run this code, you need a file with the line list & atomic data --> make_line
 
   python make_linelist.py
 
+As an example, I include the line list file (make_linelist.dat) and an ARES output (star.ares). 
+To make the process automatic, put the *.ares into an auxiliary file (makelines).
 
+  ls -1 *.ares > makelines
   
