@@ -8,7 +8,7 @@ def make_linelist(ares):
     line list and atomic data of make_linelist.dat file
     """
 
-    # Read Tsantaki 2013 line list
+    # Read the line list and check for multiple identical lines
     linelist = np.genfromtxt('make_linelist.dat', dtype=None, skiprows=1,
                              names=['line', 'excitation', 'loggf',
                                     'elem', 'atomic', 'ew_sun'])
@@ -17,13 +17,12 @@ def make_linelist(ares):
     linelist_loggf = linelist['loggf']
     linelist_atomic = linelist['atomic']
     linelist_element = linelist['elem']
-    if len(np.unique(linelist_wave)) > len(linelist_wave):
-        print 'Check for multiples in make_linelist.dat'
-    else:
-        print 'Number of elements in line list: ', len(linelist_wave)
+    assert (len(np.unique(linelist_wave)) == len(linelist_wave)), 'Check for multiple\
+                                                    lines in make_linelist.dat'
+    print 'Number of elements in line list: ', len(linelist_wave)
     ########################################################################
 
-    # Read the lines and ews in the ares data
+    # Read the lines and ews in the ares data and check for identical lines
     data = np.genfromtxt(ares, dtype=None, names=['wave', 'fit', 'c1', 'c2',
                                                   'ew', 'c3', 'c4', 'c5'])
     wave_ares = data['wave']
@@ -40,8 +39,7 @@ def make_linelist(ares):
     ew = ew_ares[index_ares]
 
     # Sort common elements from ares by wavelength
-    ares_values = np.array([common_wave, ew])
-    ares_values = np.transpose(ares_values)
+    ares_values = np.column_stack((common_wave, ew))
     ares_sorted = sorted(ares_values, key=lambda row: row[0])
     ares_sorted = np.transpose(ares_sorted)
     ########################################################################
@@ -61,49 +59,37 @@ def make_linelist(ares):
     print 'Lines in the new line list: ', len(wave)
 
     # Sort common elements from line list by wavelength
-    linelist_values = np.array([wave, atomic, excitation, loggf])
-    linelist_values = np.transpose(linelist_values)
+    linelist_values = np.column_stack((wave, atomic, excitation, loggf))
     linelist_sorted = sorted(linelist_values, key=lambda row: row[0])
     linelist_sorted = np.transpose(linelist_sorted)
     ########################################################################
 
     # Merge line list data with the EW from ARES
     # Sort the FeI and the FeII lines using the atomic number
-    values = np.array([ares_sorted[0], linelist_sorted[1], linelist_sorted[2],
-                       linelist_sorted[3], ares_sorted[1]])
-    values = np.transpose(values)
+    values = np.column_stack((ares_sorted[0], linelist_sorted[1],
+                             linelist_sorted[2], linelist_sorted[3],
+                             ares_sorted[1]))
     sorted_values = sorted(values, key=lambda row: row[1])
     sorted_values = np.transpose(sorted_values)
     ########################################################################
 
     # Write results in MOOG readable format
-    if np.array_equal(ares_sorted[0], linelist_sorted[0]):
-        data = zip(sorted_values[0], sorted_values[1], sorted_values[2],
-                   sorted_values[3], sorted_values[4])
-        np.savetxt('lines.'+ares, data, fmt=('%9.2f', '%7.1f', '%11.2f',
-                                             '%10.3f', '%27.1f'),
-                   header= '  '+ares)
-    else:
-        print 'Error! There is something wrong with the common elements\
-               of ARES and the line list'
-        raise SystemExit
-    return
+    assert np.array_equal(ares_sorted[0], linelist_sorted[0]), 'There is\
+    something wrong with the common elements of ARES and the line list'
+    data = zip(sorted_values[0], sorted_values[1], sorted_values[2],
+               sorted_values[3], sorted_values[4])
+    np.savetxt('lines.'+ares, data, fmt=('%9.2f', '%7.1f', '%11.2f',
+                                         '%10.3f', '%27.1f'),
+               header= '  '+ares)
+
 
 ###############################################################################
 ###############################################################################
 # Main program
 try:
-    with open('makelines') as f:
-        lines = f.readlines()[:]
-
-    filename = []
-    for line in lines:
-        line = line.split('\n')
-        filename.append(str(line[0]))
-
-    for i, x in enumerate(filename):
-        make_linelist(x)
-
+    with open('makelines', 'r') as lines:
+        for line in lines:
+            make_linelist(line)
 except IOError, e:
     print 'Sorry! To run this program, you need to create a "makelines"\
            file with the ares output.'
