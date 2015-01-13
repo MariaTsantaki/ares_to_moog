@@ -89,7 +89,7 @@ def make_linelist(ares):
 try:
     with open('makelines', 'r') as lines:
         for line in lines:
-            make_linelist(line)
+            make_linelist(line.strip())
 except IOError, e:
     print 'Sorry! To run this program, you need to create a "makelines"\
            file with the ares output.'
