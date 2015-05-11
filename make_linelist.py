@@ -78,8 +78,7 @@ def make_linelist(ares):
     something wrong with the common elements of ARES and the line list'
     data = zip(sorted_values[0], sorted_values[1], sorted_values[2],
                sorted_values[3], sorted_values[4])
-    np.savetxt('lines.'+ares, data, fmt=('%9.2f', '%7.1f', '%11.2f',
-                                         '%10.3f', '%27.1f'),
+    np.savetxt('lines.'+ares, data, fmt=('%9.3f', '%10.1f', '%9.2f', '%9.3f', '%28.1f'),
                header= '  '+ares)
 
 
